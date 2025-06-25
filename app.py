@@ -3,7 +3,7 @@ from flask_cors import CORS
 import joblib, numpy as np, os
 
 
-ALLOWED_ORIGIN = "https://formulario-precios-auto.onrender.com"
+ALLOWED_ORIGIN = "https://poryectom2-1.onrender.com"
 
 MODEL_PATH = "modelo_regresion_completo.pkl"
 
