@@ -5,39 +5,20 @@ import joblib, numpy as np, os
 # ───── Configuración ─────
 ALLOWED_ORIGIN = "https://poryectom2-1.onrender.com"
 MODEL_PATH = "modelo_regresion_completo.pkl"
+INPUT_FEATURES_PATH = "input_features.pkl"
 
 app = Flask(__name__, template_folder="templates")
 CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGIN}})
 
-# ───── Carga del modelo ─────
+# ───── Carga del modelo y las features originales ─────
 try:
     model = joblib.load(MODEL_PATH)
-    print("✅ Modelo cargado:", MODEL_PATH)
+    input_features = joblib.load(INPUT_FEATURES_PATH)
+    print("✅ Modelo y features cargados")
 except Exception as e:
     model = None
-    print("❌ Error al cargar modelo:", e)
-
-# ───── Función auxiliar: columnas post-preprocesamiento ─────
-def get_feature_names():
-    if model is None:
-        return []
-    try:
-        pre = model.named_steps["preprocessing"]
-        names = []
-        for _, transformer, cols in pre.transformers_:
-            if transformer is None or transformer == "drop":
-                continue
-            if hasattr(transformer, "get_feature_names_out"):
-                try:
-                    new_cols = transformer.get_feature_names_out(cols)
-                except Exception:
-                    new_cols = cols
-            else:
-                new_cols = cols
-            names.extend(new_cols)
-        return list(names)
-    except Exception:
-        return []
+    input_features = []
+    print("❌ Error al cargar modelo o features:", e)
 
 # ───── Endpoints ─────
 
@@ -59,8 +40,7 @@ def health():
 def model_info():
     if model is None:
         return jsonify(error="Modelo no cargado"), 500
-    features = get_feature_names()
-    return jsonify(selected_features=features, total=len(features))
+    return jsonify(selected_features=input_features, total=len(input_features))
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -75,11 +55,10 @@ def predict():
     if not isinstance(features, list):
         return jsonify(error="'features' debe ser lista"), 400
 
-    expected_len = len(get_feature_names())
-    if len(features) != expected_len:
+    if len(features) != len(input_features):
         return jsonify(
-            error=f"Se requieren {expected_len} características",
-            expected_features=expected_len,
+            error=f"Se requieren {len(input_features)} características",
+            expected_features=len(input_features),
             received=len(features)
         ), 400
 

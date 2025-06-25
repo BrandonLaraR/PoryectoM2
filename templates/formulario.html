@@ -5,20 +5,75 @@
     <title>Predicción de Precio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; }
-        .container { background: white; max-width: 600px; margin: auto; padding: 20px; border-radius: 8px; }
-        h2 { text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; }
-        input[type="number"] { width: 100%; padding: 8px; font-size: 1em; }
-        button { padding: 10px 20px; background-color: #333; color: white; border: none; cursor: pointer; }
-        .result, .error { margin-top: 20px; font-size: 1.1em; }
-        .error { color: red; }
+        :root {
+            --primary-color: #0066cc;
+            --background-color: #f5f7fa;
+            --text-color: #333;
+            --input-border: #ccc;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 30px;
+        }
+        .container {
+            background: white;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            font-weight: bold;
+            color: var(--text-color);
+            display: block;
+            margin-bottom: 6px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background-color: #004a99;
+        }
+        .result, .error {
+            margin-top: 20px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        .error {
+            color: red;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>Predicción de Precio</h2>
+    <h2>Predicción de Precio del Vehículo</h2>
     <form id="priceForm"></form>
     <button id="predictBtn">Predecir</button>
     <div class="result" id="result"></div>
@@ -26,7 +81,7 @@
 </div>
 
 <script>
-    const API_URL = 'https://poryectom2.onrender.com'; // 🔁 Cambia esto si usas otro subdominio
+    const API_URL = 'https://poryectom2.onrender.com';
     const form = document.getElementById('priceForm');
     const resultDiv = document.getElementById('result');
     const errorDiv = document.getElementById('error');
@@ -43,9 +98,11 @@
             featureOrder.forEach((feature, index) => {
                 const group = document.createElement('div');
                 group.className = 'form-group';
+
                 const label = document.createElement('label');
                 label.htmlFor = `feature_${index}`;
-                label.innerText = feature;
+                label.innerText = feature.replace(/_/g, ' ').toUpperCase();
+
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.step = 'any';
