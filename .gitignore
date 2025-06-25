@@ -1,0 +1,32 @@
+# Ignore virtual environment
+.venv/
+.env
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore MacOS specific file
+.DS_Store
+
+# Ignore Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Ignore VSCode config
+.vscode/
+
+# Ignore compiled C extensions
+*.so
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Ignore model and dataset files
+*.h5
+*.pkl
+*.joblib
+*.csv
+*.xlsx
