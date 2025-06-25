@@ -344,12 +344,7 @@
         element.innerHTML = message;
         element.classList.add('show');
         
-        // Auto-hide after 5 seconds for success messages
-        if (isSuccess) {
-            setTimeout(() => {
-                element.classList.remove('show');
-            }, 5000);
-        }
+        // No auto-hide - messages stay visible until next prediction
     }
 
     function hideMessages() {
