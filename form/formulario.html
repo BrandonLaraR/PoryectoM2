@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Predicción de Precio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; }
+        .container { background: white; max-width: 600px; margin: auto; padding: 20px; border-radius: 8px; }
+        h2 { text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; }
+        input[type="number"] { width: 100%; padding: 8px; font-size: 1em; }
+        button { padding: 10px 20px; background-color: #333; color: white; border: none; cursor: pointer; }
+        .result, .error { margin-top: 20px; font-size: 1.1em; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Predicción de Precio</h2>
+    <form id="priceForm"></form>
+    <button id="predictBtn">Predecir</button>
+    <div class="result" id="result"></div>
+    <div class="error" id="error"></div>
+</div>
+
+<script>
+    const API_URL = 'https://tu-api-render.onrender.com'; // 🔁 Cambia esto si usas otro subdominio
+    const form = document.getElementById('priceForm');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    const predictBtn = document.getElementById('predictBtn');
+
+    let featureOrder = [];
+
+    async function loadForm() {
+        try {
+            const res = await fetch(`${API_URL}/model-info`);
+            const data = await res.json();
+            featureOrder = data.selected_features;
+
+            featureOrder.forEach((feature, index) => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                const label = document.createElement('label');
+                label.htmlFor = `feature_${index}`;
+                label.innerText = feature;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.step = 'any';
+                input.id = `feature_${index}`;
+                input.name = feature;
+                input.required = true;
+
+                group.appendChild(label);
+                group.appendChild(input);
+                form.appendChild(group);
+            });
+        } catch (e) {
+            errorDiv.innerText = "❌ No se pudo cargar el formulario.";
+            console.error(e);
+        }
+    }
+
+    predictBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        resultDiv.innerText = '';
+        errorDiv.innerText = '';
+
+        try {
+            const values = featureOrder.map((_, i) => {
+                const val = parseFloat(document.getElementById(`feature_${i}`).value);
+                if (isNaN(val)) throw new Error("Todos los campos deben estar completos.");
+                return val;
+            });
+
+            const res = await fetch(`${API_URL}/predict`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ features: values })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                resultDiv.innerText = `✅ Precio estimado: $${data.predicted_price}`;
+            } else {
+                errorDiv.innerText = `❌ ${data.error || 'Error en la predicción.'}`;
+            }
+
+        } catch (err) {
+            errorDiv.innerText = `❌ ${err.message}`;
+        }
+    });
+
+    window.onload = loadForm;
+</script>
+</body>
+</html>
