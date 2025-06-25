@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib, numpy as np, os
+import pandas as pd  # ✅ Importación necesaria
 
 # ───── Configuración ─────
 ALLOWED_ORIGIN = "https://poryectom2-1.onrender.com"
@@ -70,7 +71,6 @@ def predict():
         ), 400
 
     try:
-        # Preprocesar: convertir valores numéricos y mantener strings
         parsed_features = []
         for idx, val in enumerate(features):
             feature_name = input_features[idx]
@@ -79,7 +79,8 @@ def predict():
             else:
                 parsed_features.append(float(val))
 
-        X = np.array(parsed_features).reshape(1, -1)
+        # ✅ Crear DataFrame con nombres de columnas
+        X = pd.DataFrame([parsed_features], columns=input_features)
         pred = float(model.predict(X)[0])
         return jsonify(predicted_price=round(pred, 2))
     except Exception as e:
