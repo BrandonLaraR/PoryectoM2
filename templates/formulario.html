@@ -19,7 +19,7 @@
         }
         .container {
             background: white;
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             padding: 30px 25px;
             border-radius: 10px;
@@ -30,8 +30,14 @@
             color: var(--primary-color);
             margin-bottom: 25px;
         }
+        .form-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
         .form-group {
-            margin-bottom: 18px;
+            flex: 1 1 calc(50% - 20px);
+            min-width: 220px;
         }
         label {
             font-weight: bold;
@@ -39,7 +45,7 @@
             display: block;
             margin-bottom: 6px;
         }
-        input {
+        input, select {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--input-border);
@@ -49,6 +55,7 @@
         button {
             display: block;
             width: 100%;
+            margin-top: 20px;
             padding: 12px;
             background-color: var(--primary-color);
             color: white;
@@ -74,7 +81,7 @@
 <body>
 <div class="container">
     <h2>Predicción de Precio del Vehículo</h2>
-    <form id="priceForm"></form>
+    <form id="priceForm" class="form-grid"></form>
     <button id="predictBtn">Predecir</button>
     <div class="result" id="result"></div>
     <div class="error" id="error"></div>
@@ -93,6 +100,18 @@
         'cylindernumber', 'fuelsystem'
     ];
 
+    const categoricalOptions = {
+        fueltype: ['gas', 'diesel'],
+        aspiration: ['std', 'turbo'],
+        doornumber: ['two', 'four'],
+        carbody: ['convertible', 'hatchback', 'sedan', 'wagon', 'hardtop'],
+        drivewheel: ['fwd', 'rwd', '4wd'],
+        enginelocation: ['front', 'rear'],
+        enginetype: ['dohc', 'ohcv', 'ohc', 'l', 'rotor', 'dohcv', 'ohcf'],
+        cylindernumber: ['two', 'three', 'four', 'five', 'six', 'eight', 'twelve'],
+        fuelsystem: ['mpfi', '2bbl', '1bbl', '4bbl', 'idi', 'spdi', 'spfi', 'mfi']
+    };
+
     let featureOrder = [];
 
     async function loadForm() {
@@ -109,22 +128,38 @@
                 label.htmlFor = `feature_${index}`;
                 label.innerText = feature.replace(/_/g, ' ').toUpperCase();
 
-                const input = document.createElement('input');
-                input.id = `feature_${index}`;
-                input.name = feature;
-                input.required = true;
-
                 if (categoricalFeatures.includes(feature)) {
-                    input.type = 'text';
-                    input.placeholder = 'Ej: gas, std, four...';
+                    const select = document.createElement('select');
+                    select.id = `feature_${index}`;
+                    select.name = feature;
+                    select.required = true;
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.text = '-- Selecciona --';
+                    select.appendChild(defaultOption);
+
+                    categoricalOptions[feature]?.forEach(opt => {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.text = opt;
+                        select.appendChild(option);
+                    });
+
+                    group.appendChild(label);
+                    group.appendChild(select);
                 } else {
+                    const input = document.createElement('input');
                     input.type = 'number';
                     input.step = 'any';
+                    input.id = `feature_${index}`;
+                    input.name = feature;
+                    input.required = true;
                     input.placeholder = 'Ej: 120.5';
+                    group.appendChild(label);
+                    group.appendChild(input);
                 }
 
-                group.appendChild(label);
-                group.appendChild(input);
                 form.appendChild(group);
             });
         } catch (e) {
@@ -140,9 +175,10 @@
 
         try {
             const values = featureOrder.map((_, i) => {
-                const val = document.getElementById(`feature_${i}`).value.trim();
+                const elem = document.getElementById(`feature_${i}`);
+                const val = elem.value.trim();
                 if (val === '') throw new Error("Todos los campos deben estar completos.");
-                return isNaN(val) || categoricalFeatures.includes(featureOrder[i]) ? val : parseFloat(val);
+                return categoricalFeatures.includes(featureOrder[i]) ? val : parseFloat(val);
             });
 
             const res = await fetch(`${API_URL}/predict`, {
