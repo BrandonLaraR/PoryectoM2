@@ -20,6 +20,13 @@ except Exception as e:
     input_features = []
     print("❌ Error al cargar modelo o features:", e)
 
+# Variables categóricas crudas originales
+categorical_features = [
+    'fueltype', 'aspiration', 'doornumber', 'carbody',
+    'drivewheel', 'enginelocation', 'enginetype',
+    'cylindernumber', 'fuelsystem'
+]
+
 # ───── Endpoints ─────
 
 @app.route("/")
@@ -63,7 +70,16 @@ def predict():
         ), 400
 
     try:
-        X = np.array(features).reshape(1, -1)
+        # Preprocesar: convertir valores numéricos y mantener strings
+        parsed_features = []
+        for idx, val in enumerate(features):
+            feature_name = input_features[idx]
+            if feature_name in categorical_features:
+                parsed_features.append(str(val).lower().strip())
+            else:
+                parsed_features.append(float(val))
+
+        X = np.array(parsed_features).reshape(1, -1)
         pred = float(model.predict(X)[0])
         return jsonify(predicted_price=round(pred, 2))
     except Exception as e:

@@ -39,7 +39,7 @@
             display: block;
             margin-bottom: 6px;
         }
-        input[type="number"] {
+        input {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--input-border);
@@ -87,6 +87,12 @@
     const errorDiv = document.getElementById('error');
     const predictBtn = document.getElementById('predictBtn');
 
+    const categoricalFeatures = [
+        'fueltype', 'aspiration', 'doornumber', 'carbody',
+        'drivewheel', 'enginelocation', 'enginetype',
+        'cylindernumber', 'fuelsystem'
+    ];
+
     let featureOrder = [];
 
     async function loadForm() {
@@ -104,11 +110,18 @@
                 label.innerText = feature.replace(/_/g, ' ').toUpperCase();
 
                 const input = document.createElement('input');
-                input.type = 'number';
-                input.step = 'any';
                 input.id = `feature_${index}`;
                 input.name = feature;
                 input.required = true;
+
+                if (categoricalFeatures.includes(feature)) {
+                    input.type = 'text';
+                    input.placeholder = 'Ej: gas, std, four...';
+                } else {
+                    input.type = 'number';
+                    input.step = 'any';
+                    input.placeholder = 'Ej: 120.5';
+                }
 
                 group.appendChild(label);
                 group.appendChild(input);
@@ -127,9 +140,9 @@
 
         try {
             const values = featureOrder.map((_, i) => {
-                const val = parseFloat(document.getElementById(`feature_${i}`).value);
-                if (isNaN(val)) throw new Error("Todos los campos deben estar completos.");
-                return val;
+                const val = document.getElementById(`feature_${i}`).value.trim();
+                if (val === '') throw new Error("Todos los campos deben estar completos.");
+                return isNaN(val) || categoricalFeatures.includes(featureOrder[i]) ? val : parseFloat(val);
             });
 
             const res = await fetch(`${API_URL}/predict`, {
