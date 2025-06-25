@@ -1,29 +1,24 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib, numpy as np, os
 
-
+# ───── Configuración ─────
 ALLOWED_ORIGIN = "https://poryectom2-1.onrender.com"
-
 MODEL_PATH = "modelo_regresion_completo.pkl"
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates")
 CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGIN}})
 
-# ─────────────────── Carga del modelo ───────────────────
+# ───── Carga del modelo ─────
 try:
     model = joblib.load(MODEL_PATH)
-    print("✅  Modelo cargado:", MODEL_PATH)
+    print("✅ Modelo cargado:", MODEL_PATH)
 except Exception as e:
     model = None
-    print("❌  Error al cargar modelo:", e)
+    print("❌ Error al cargar modelo:", e)
 
-# ─────────── Función auxiliar: nombres de columnas finales ───────────
+# ───── Función auxiliar: columnas post-preprocesamiento ─────
 def get_feature_names():
-    """
-    Devuelve la lista de features que el preprocesador deja al estimador.
-    Funciona con ColumnTransformer + OneHotEncoder/Scaler.
-    """
     if model is None:
         return []
     try:
@@ -44,13 +39,15 @@ def get_feature_names():
     except Exception:
         return []
 
-# ───────────────────── Endpoints ─────────────────────
+# ───── Endpoints ─────
+
 @app.route("/")
 def home():
-    return {
-        "service": "API Predicción Precio Auto",
-        "endpoints": ["/predict (POST)", "/model-info (GET)", "/health (GET)"]
-    }
+    return render_template("formulario.html")
+
+@app.route("/formulario")
+def formulario():
+    return render_template("formulario.html")
 
 @app.route("/health")
 def health():
@@ -93,7 +90,7 @@ def predict():
     except Exception as e:
         return jsonify(error=f"Error durante la predicción: {str(e)}"), 500
 
-# ──────────────────── Arranque ────────────────────
+# ───── Arranque ─────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
